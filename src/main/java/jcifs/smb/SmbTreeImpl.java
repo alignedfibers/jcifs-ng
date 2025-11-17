@@ -1,16 +1,16 @@
 /* jcifs smb client library in Java
  * Copyright (C) 2000  "Michael B. Allen" <jcifs at samba dot org>
- *
+ * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- *
+ * 
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -23,10 +23,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -97,7 +95,7 @@ class SmbTreeImpl implements SmbTreeInternal {
     private final List<StackTraceElement[]> acquires;
     private final List<StackTraceElement[]> releases;
 
-    private final Map<String, DfsReferralData> treeReferrals = new HashMap<>();
+    private DfsReferralData treeReferral;
 
 
     SmbTreeImpl ( SmbSessionImpl session, String share, String service ) {
@@ -273,7 +271,7 @@ class SmbTreeImpl implements SmbTreeInternal {
 
 
     /**
-     *
+     * 
      * @return whether the tree is connected
      */
     public boolean isConnected () {
@@ -321,7 +319,7 @@ class SmbTreeImpl implements SmbTreeInternal {
 
 
     /**
-     *
+     * 
      */
     void markDomainDfs () {
         this.inDomainDfs = true;
@@ -339,34 +337,16 @@ class SmbTreeImpl implements SmbTreeInternal {
     /**
      * @param referral
      */
-    public void setTreeReferral ( DfsReferralData referral, String path ) {
-        if ( referral.getLink() != null ) {
-            log.debug("Mapping tree referral [{}] with link [{}]", referral, referral.getLink());
-            this.treeReferrals.put(referral.getLink(), referral);
-        }
-        if ( path != null ) {
-            log.debug("Mapping tree referral [{}] with path [{}]", referral, path);
-            this.treeReferrals.put(path, referral);
-        }
+    public void setTreeReferral ( DfsReferralData referral ) {
+        this.treeReferral = referral;
     }
 
 
     /**
      * @return the treeReferral
      */
-    public DfsReferralData getTreeReferral ( String path ) {
-        if (path != null) {
-            log.debug("Finding tree referral for path [{}]", path);
-            for (String link : this.treeReferrals.keySet()) {
-                if (path.startsWith(link)) {
-                    DfsReferralData referral = this.treeReferrals.get(link);
-                    log.debug("Found tree referral [{}] for path [{}]", referral, path);
-                    return this.treeReferrals.get(link);
-                }
-            }
-            log.debug("No tree referral found for path [{}]", path);
-        }
-        return null;
+    public DfsReferralData getTreeReferral () {
+        return this.treeReferral;
     }
 
 
@@ -714,7 +694,7 @@ class SmbTreeImpl implements SmbTreeInternal {
      * @param trans
      * @param sess
      * @throws CIFSException
-     *
+     * 
      */
     private void validateNegotiation ( SmbTransportImpl trans, SmbSessionImpl sess ) throws CIFSException {
         if ( !trans.isSMB2() || trans.getDigest() == null || !sess.getConfig().isRequireSecureNegotiate() ) {
@@ -799,7 +779,7 @@ class SmbTreeImpl implements SmbTreeInternal {
 
 
     /**
-     *
+     * 
      * {@inheritDoc}
      *
      * @see jcifs.smb.SmbTreeInternal#connectLogon(jcifs.CIFSContext)
@@ -883,7 +863,7 @@ class SmbTreeImpl implements SmbTreeInternal {
 
 
     /**
-     *
+     * 
      */
     private void dumpResource () {
         if ( !this.traceResource ) {
