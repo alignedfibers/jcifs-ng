@@ -145,6 +145,7 @@ public final class PropertyConfiguration extends BaseConfiguration implements Co
         this.guestUsername = p.getProperty("jcifs.smb.client.guestUsername", "JCIFSGUEST");
         this.guestPassword = p.getProperty("jcifs.smb.client.guestPassword", "");
 
+
         String minVer = p.getProperty("jcifs.smb.client.minVersion");
         String maxVer = p.getProperty("jcifs.smb.client.maxVersion");
 

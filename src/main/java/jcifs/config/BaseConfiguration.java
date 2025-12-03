@@ -47,7 +47,14 @@ import jcifs.SmbConstants;
  *
  */
 public class BaseConfiguration implements Configuration {
-
+    protected int[] altNetbiosPorts = new int[] {139,1139};;
+    @Override
+    public boolean isNetbiosPort(int port) {
+        for (int p : altNetbiosPorts) {
+            if (p == port) return true;
+        }
+        return false;
+    }
     private static final Logger log = LoggerFactory.getLogger(BaseConfiguration.class);
     private static final Map<String, Integer> DEFAULT_BATCH_LIMITS = new HashMap<>();
 

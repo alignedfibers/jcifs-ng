@@ -34,7 +34,7 @@ jcifs-ng 2.1.6
 - Bump bouncycastle, forward compat (#262)
 
 jcifs-ng 2.1.5
-- Fix invalid negotitate context parsing that caused 
+- Fix invalid negotitate context parsing that caused
   OutOfMemoryException for pre 3.11 protocols (#178)
 - Fix SMB1 initial pipe transaction response size,
   resulted in padding being used as data and

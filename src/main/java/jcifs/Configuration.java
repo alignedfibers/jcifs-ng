@@ -41,7 +41,10 @@ public interface Configuration {
      */
     SecureRandom getRandom ();
 
-
+   // boolean isNetbiosPort(int port);
+    default boolean isNetbiosPort(int port){
+        return port == 139;
+    }
     /**
      * 
      * 

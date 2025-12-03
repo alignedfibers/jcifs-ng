@@ -43,12 +43,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.crypto.Cipher;
 
+import org.bouncycastle.jcajce.provider.symmetric.ARC4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jcifs.Address;
 import jcifs.CIFSContext;
 import jcifs.CIFSException;
+import jcifs.Config;
+import jcifs.Configuration;
+import jcifs.config.BaseConfiguration;
 import jcifs.DfsReferralData;
 import jcifs.DialectVersion;
 import jcifs.SmbConstants;
@@ -153,7 +157,7 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
     /**
      * {@inheritDoc}
      *
-     * @see jcifs.util.transport.Transport#getResponseTimeout()
+     * //@see jcifs.util.transport.Transport#getResponseTimeout()
      */
     @Override
     protected int getResponseTimeout ( Request req ) {
@@ -403,6 +407,7 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
 
 
     boolean matches ( Address addr, int prt, InetAddress laddr, int lprt, String hostName ) {
+        //Configuration config = this.transportContext.getConfig();
         if ( this.state == 5 || this.state == 6 ) {
             // don't reuse disconnecting/disconnected transports
             return false;
@@ -410,21 +415,22 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
         if ( hostName == null )
             hostName = addr.getHostName();
         return ( this.tconHostName == null || hostName.equalsIgnoreCase(this.tconHostName) ) && addr.equals(this.address)
-                && ( prt == 0 || prt == this.port ||
-                /* port 139 is ok if 445 was requested */
-                        ( prt == 445 && this.port == 139 ) )
-                && ( laddr == this.localAddr || ( laddr != null && laddr.equals(this.localAddr) ) ) && lprt == this.localPort;
+                && ( prt == 0 || prt == this.port || ( prt == 445 && this.transportContext.getConfig().isNetbiosPort(this.port) )
+                        /* port 139 is ok if 445 was requested */
+                       // ( prt == 445 && this.port == 139 ) )
+                && ( laddr == this.localAddr || ( laddr != null && laddr.equals(this.localAddr) ) ) && lprt == this.localPort);
     }
 
 
-    void ssn139 () throws IOException {
+    void ssn139 (int prt) throws IOException {
         CIFSContext tc = this.transportContext;
         Name calledName = new Name(tc.getConfig(), this.address.firstCalledName(), 0x20, null);
         do {
             this.socket = new Socket();
             if ( this.localAddr != null )
                 this.socket.bind(new InetSocketAddress(this.localAddr, this.localPort));
-            this.socket.connect(new InetSocketAddress(this.address.getHostAddress(), 139), tc.getConfig().getConnTimeout());
+            this.socket.connect(new InetSocketAddress(this.address.getHostAddress(), prt), tc.getConfig().getConnTimeout());
+            /*this.socket.connect(new InetSocketAddress(this.address.getHostAddress(), 139), tc.getConfig().getConnTimeout());*/
             this.socket.setSoTimeout(tc.getConfig().getSoTimeout());
 
             this.out = this.socket.getOutputStream();
@@ -481,9 +487,12 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
          * until we have properly negotiated.
          */
         synchronized ( this.inLock ) {
-            if ( prt == 139 ) {
-                ssn139();
+            if ( this.transportContext.getConfig().isNetbiosPort(prt)){
+                ssn139(prt);
             }
+            /*if ( prt == 139 ) {
+                ssn139();
+            }*/
             else {
                 if ( prt == 0 )
                     prt = DEFAULT_PORT; // 445
@@ -618,7 +627,7 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
 
     /**
      * @param first
-     * @param n
+     * //@param n
      * @return
      * @throws IOException
      * @throws SocketException
@@ -707,7 +716,7 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
         }
         catch ( IOException ce ) {
             if ( getContext().getConfig().isPort139FailoverEnabled() ) {
-                this.port = ( this.port == 0 || this.port == DEFAULT_PORT ) ? 139 : DEFAULT_PORT;
+                this.port = ( this.port == 0 || this.port == DEFAULT_PORT ) ? DEFAULT_NB_PORT : DEFAULT_PORT;
                 this.smb2 = false;
                 this.mid.set(0);
                 resp = negotiate(this.port);
@@ -1436,9 +1445,9 @@ class SmbTransportImpl extends Transport implements SmbTransportInternal, SmbCon
 
 
     /**
-     * @param request
-     * @param response
-     * @throws SmbException
+     * //@param request
+     * //@param response
+     * //@throws SmbException
      */
     boolean checkStatus2 ( ServerMessageBlock2 req, Response resp ) throws SmbException {
         boolean cont = false;
