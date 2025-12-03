@@ -46,6 +46,8 @@ import jcifs.SmbConstants;
  * @author mbechler
  *
  */
+/*Updated by Shawn on 12032025*/
+
 public class BaseConfiguration implements Configuration {
     protected int[] altNetbiosPorts = new int[] {139,1139};;
     @Override

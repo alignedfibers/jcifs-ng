@@ -24,6 +24,8 @@ package jcifs;
  *
  * @internal
  */
+/*Updated by Shawn on 12032025*/
+
 @SuppressWarnings ( "javadoc" )
 public interface SmbConstants {
 
