@@ -22,4 +22,11 @@ hs_err_pid*
 
 .idea
 .gradle/
+build.properties
 build/docs/
+build/tmp/
+gradle/
+gradlew
+local.properties
+
+
